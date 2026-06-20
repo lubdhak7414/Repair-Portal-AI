@@ -5,7 +5,7 @@ import { io } from 'socket.io-client';
 
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
-  const socketUrl = import.meta.env.VITE_SOCKET_URL || 'https://471-backend.saf1.me'; // Use .env variable
+  const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
 
   useEffect(() => {
     const socketInstance = io(socketUrl, {

@@ -22,7 +22,7 @@ export const createPayment = async (req, res) => {
             });
         }
 
-        const platformFeeRate = 0.05; // 5% platform fee
+        const platformFeeRate = parseFloat(process.env.PLATFORM_FEE_PERCENT) / 100 || 0.05;
         const platformFee = amount * platformFeeRate;
         const technicianAmount = amount - platformFee;
 
