@@ -8,30 +8,22 @@ import {
 	getAllUsers,
 	loginUser
 } from '../controllers/user.controller.js';
+import { authenticate, authorize } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { registerSchema, loginSchema, updateUserSchema } from '../validators/user.validator.js';
 
 const router = express.Router();
 
-// @route   POST /api/users
-// @desc    Create a new user
-router.post('/', createUser);
+// Public
+router.post('/', validate(registerSchema), createUser);
+router.post('/login', validate(loginSchema), loginUser);
 
+// Authenticated — user can read/update own profile, admin can read/update any
+router.get('/:id', authenticate, getUserById);
+router.put('/:id', authenticate, validate(updateUserSchema), updateUser);
 
-// @route   GET /api/users/:id
-// @desc    Get a user by ID
-router.get('/:id', getUserById);
-
-// @route   PUT /api/users/:id
-// @desc    Update a user by ID
-router.put('/:id', updateUser);
-
-// @route   DELETE /api/users/:id
-// @desc    Delete a user by ID
-router.delete('/:id', deleteUser);
-
-// @route   GET /api/users
-// @desc    Get all users (Admin use)
-router.get('/', getAllUsers);
-
-router.post('/login', loginUser);
+// Admin only
+router.delete('/:id', authenticate, authorize('admin'), deleteUser);
+router.get('/', authenticate, authorize('admin'), getAllUsers);
 
 export default router;

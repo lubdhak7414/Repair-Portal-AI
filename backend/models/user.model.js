@@ -1,64 +1,86 @@
-// user.model.js
-import mongoose from "mongoose";
+import { getDb } from '../config/db.js';
 
-const addressSchema = new mongoose.Schema(
-  {
-    street: { type: String, trim: true, default: "" },
-    city: { type: String, trim: true, default: "" },
-    area: { type: String, trim: true, default: "" },
-    postalCode: { type: String, trim: true, default: "" },
-  },
-  { _id: false } // prevent creating a separate _id for the address
-);
-
-const userSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: [true, "Name is required"],
-      trim: true,
-    },
-    email: {
-      type: String,
-      required: [true, "Email is required"],
-      unique: true,
-      lowercase: true,
-      trim: true,
-      match: [/.+\@.+\..+/, "Please enter a valid email address"],
-    },
-    phone: {
-      type: String,
-      required: [true, "Phone number is required"],
-      trim: true,
-      match: [/^\+?[0-9]{7,15}$/, "Please enter a valid phone number"],
-    },
-    password: {
-      type: String,
-      required: [true, "Password is required"],
-    },
+function rowToUser(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    phone: row.phone,
+    password: row.password,
     address: {
-      type: addressSchema,
-      default: {},
+      street: row.address_street || '',
+      city: row.address_city || '',
+      area: row.address_area || '',
+      postalCode: row.address_postal_code || '',
     },
-    picture: {
-      type: String,
-      default: "",
-      trim: true,
-    },
-    role: {
-      type: String,
-      enum: ["user", "technician", "admin"],
-      default: "user",
-    },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  {
-    timestamps: true,
-  }
-);
+    picture: row.picture || '',
+    role: row.role,
+    is_active: !!row.is_active,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
 
-const User = mongoose.model("User", userSchema);
-export default User;
+export function createUser({ name, email, phone, password, role, address, picture }) {
+  const db = getDb();
+  const stmt = db.prepare(`
+    INSERT INTO users (name, email, phone, password, role, address_street, address_city, address_area, address_postal_code, picture)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  const result = stmt.run(
+    name, email, phone, password,
+    role || 'user',
+    address?.street || '', address?.city || '', address?.area || '', address?.postalCode || '',
+    picture || ''
+  );
+  return getUserById(result.lastInsertRowid);
+}
+
+export function getUserById(id) {
+  const db = getDb();
+  return rowToUser(db.prepare('SELECT * FROM users WHERE id = ?').get(id));
+}
+
+export function getUserByEmail(email) {
+  const db = getDb();
+  return rowToUser(db.prepare('SELECT * FROM users WHERE email = ?').get(email));
+}
+
+export function getAllUsers() {
+  const db = getDb();
+  return db.prepare('SELECT * FROM users').all().map(rowToUser);
+}
+
+export function getUsersByRole(role) {
+  const db = getDb();
+  return db.prepare('SELECT * FROM users WHERE role = ?').all(role).map(rowToUser);
+}
+
+export function updateUser(id, fields) {
+  const db = getDb();
+  const allowed = ['name', 'phone', 'picture', 'address_street', 'address_city', 'address_area', 'address_postal_code', 'is_active', 'password'];
+  const sets = [];
+  const values = [];
+  for (const [key, val] of Object.entries(fields)) {
+    if (allowed.includes(key)) {
+      sets.push(`${key} = ?`);
+      values.push(val);
+    }
+  }
+  if (sets.length === 0) return getUserById(id);
+  sets.push("updated_at = datetime('now')");
+  values.push(id);
+  db.prepare(`UPDATE users SET ${sets.join(', ')} WHERE id = ?`).run(...values);
+  return getUserById(id);
+}
+
+export function deleteUser(id) {
+  const db = getDb();
+  return db.prepare('DELETE FROM users WHERE id = ?').run(id);
+}
+
+export function searchUsersByName(name) {
+  const db = getDb();
+  return db.prepare('SELECT * FROM users WHERE name LIKE ?').all(`%${name}%`).map(rowToUser);
+}

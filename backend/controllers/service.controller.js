@@ -1,5 +1,4 @@
-// service.controller.js
-import Service from "../models/service.model.js";
+import { createService as createServiceModel, getServiceById as getServiceByIdModel, getAllServices as getAllServicesModel, updateService as updateServiceModel, deleteService as deleteServiceModel, getDistinctCategories } from "../models/service.model.js";
 
 // Create a new service
 export const createService = async (req, res) => {
@@ -13,7 +12,7 @@ export const createService = async (req, res) => {
             image
         } = req.body;
 
-        const service = new Service({
+        const service = createServiceModel({
             name,
             category,
             description,
@@ -22,7 +21,6 @@ export const createService = async (req, res) => {
             image
         });
 
-        await service.save();
         res.status(201).json({
             message: "Service created successfully",
             service
@@ -37,33 +35,16 @@ export const createService = async (req, res) => {
 export const getAllServices = async (req, res) => {
     try {
         const { category, search, page = 1, limit = 10 } = req.query;
-        
-        const query = { isActive: true };
-        
-        if (category) {
-            query.category = category;
-        }
-        
-        if (search) {
-            query.$or = [
-                { name: { $regex: search, $options: 'i' } },
-                { description: { $regex: search, $options: 'i' } }
-            ];
-        }
 
-        const services = await Service.find(query)
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
-            .sort({ createdAt: -1 });
-
-        const total = await Service.countDocuments(query);
-
-        res.status(200).json({
-            services,
-            totalPages: Math.ceil(total / limit),
-            currentPage: page,
-            total
+        const result = getAllServicesModel({
+            category,
+            search,
+            isActive: true,
+            page: Number(page),
+            limit: Number(limit)
         });
+
+        res.status(200).json(result);
     } catch (error) {
         console.error("Get All Services Error:", error);
         res.status(500).json({ message: "Server Error" });
@@ -73,7 +54,7 @@ export const getAllServices = async (req, res) => {
 // Get service by ID
 export const getServiceById = async (req, res) => {
     try {
-        const service = await Service.findById(req.params.id);
+        const service = getServiceByIdModel(req.params.id);
         if (!service) {
             return res.status(404).json({ message: "Service not found" });
         }
@@ -87,7 +68,7 @@ export const getServiceById = async (req, res) => {
 // Get service categories
 export const getServiceCategories = async (req, res) => {
     try {
-        const categories = await Service.distinct('category', { isActive: true });
+        const categories = getDistinctCategories();
         res.status(200).json(categories);
     } catch (error) {
         console.error("Get Categories Error:", error);
@@ -98,11 +79,18 @@ export const getServiceCategories = async (req, res) => {
 // Update service
 export const updateService = async (req, res) => {
     try {
-        const updatedService = await Service.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true }
-        );
+        const fields = {};
+        const { name, category, description, estimatedPrice, estimatedDuration, image, isActive } = req.body;
+        if (name !== undefined) fields.name = name;
+        if (category !== undefined) fields.category = category;
+        if (description !== undefined) fields.description = description;
+        if (image !== undefined) fields.image = image;
+        if (isActive !== undefined) fields.isActive = isActive;
+        if (estimatedPrice?.min !== undefined) fields.estimatedPrice_min = estimatedPrice.min;
+        if (estimatedPrice?.max !== undefined) fields.estimatedPrice_max = estimatedPrice.max;
+        if (estimatedDuration !== undefined) fields.estimatedDuration = estimatedDuration;
+
+        const updatedService = updateServiceModel(req.params.id, fields);
         if (!updatedService) {
             return res.status(404).json({ message: "Service not found" });
         }
@@ -116,16 +104,15 @@ export const updateService = async (req, res) => {
 // Delete service by ID
 export const deleteService = async (req, res) => {
     try {
-        const deletedService = await Service.findByIdAndDelete(req.params.id);
-        
-        if (!deletedService) {
+        const existing = getServiceByIdModel(req.params.id);
+        if (!existing) {
             return res.status(404).json({ message: "Service not found" });
         }
 
+        deleteServiceModel(req.params.id);
         res.status(200).json({ message: "Service deleted successfully" });
     } catch (error) {
         console.error("Delete Service Error:", error);
         res.status(500).json({ message: "Server Error" });
     }
 };
-

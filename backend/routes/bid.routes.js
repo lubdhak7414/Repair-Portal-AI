@@ -5,19 +5,15 @@ import {
     acceptBid,
     getTechnicianBids
 } from "../controllers/bid.controller.js";
+import { authenticate, authorize } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { createBidSchema } from '../validators/bid.validator.js';
 
 const router = express.Router();
 
-// Create bid
-router.post("/", createBid);
-
-// Get bids for a booking
-router.get("/booking/:bookingId", getBookingBids);
-
-// Accept a bid
-router.put("/:bidId/accept", acceptBid);
-
-// Get technician's bids
-router.get("/technician/:technicianId", getTechnicianBids);
+router.post("/", authenticate, authorize('technician'), validate(createBidSchema), createBid);
+router.get("/booking/:bookingId", authenticate, getBookingBids);
+router.put("/:bidId/accept", authenticate, authorize('user'), acceptBid);
+router.get("/technician/:technicianId", authenticate, authorize('technician'), getTechnicianBids);
 
 export default router;

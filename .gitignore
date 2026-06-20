@@ -5,3 +5,8 @@ dist
 .vscode
 CLAUDE.md
 plans/
+.claude/
+
+# SQLite database files
+backend/data/*.db
+backend/data/backups/

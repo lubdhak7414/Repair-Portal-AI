@@ -62,7 +62,7 @@ const TechnicianDashboard = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const res = await axios.get(`${apiUrl}/techDashboard/user/${user.id}/bookings?status=${filter}`
+        const res = await axios.get(`${apiUrl}/bookings/technician/${user.id}/bookings?status=${filter}`
 
         );
         setBookings(res.data);
@@ -77,7 +77,7 @@ const TechnicianDashboard = () => {
         const counts = {};
         const statuses = ["pending", "accepted", "in-progress", "completed", "cancelled"];
         for (const status of statuses) {
-          const res = await axios.get(`${apiUrl}/techDashboard/user/${user.id}/bookings?status=${status}`);
+          const res = await axios.get(`${apiUrl}/bookings/technician/${user.id}/bookings?status=${status}`);
           counts[status] = res.data.length;
         }
         setBookingCounts(counts);
@@ -93,7 +93,7 @@ const TechnicianDashboard = () => {
   const handleCancelConfirm = async (bookingId, reason, status) => {
     try {
       const { data } = await axios.patch(
-        `${apiUrl}/techDashboard/bookings/${bookingId}`,
+        `${apiUrl}/bookings/technician/${bookingId}/status`,
         { 
           status: status, 
           userId: user.id,
@@ -123,7 +123,7 @@ const TechnicianDashboard = () => {
     }
     try {
       const { data } = await axios.patch(
-        `${apiUrl}/techDashboard/bookings/${bookingId}`,
+        `${apiUrl}/bookings/technician/${bookingId}/status`,
         { status: newStatus, userId: user.id }
       );
       setBookings(bookings.map(booking => 

@@ -7,7 +7,7 @@ import paymentRoutes from "./payment.routes.js";
 import reviewRoutes from "./review.routes.js";
 import invoiceRoutes from "./invoice.routes.js";
 import warrantyRoutes from "./warranty.routes.js";
-import chatRoutes from "./chat.routes.js";
+import messageRoutes from "./message.routes.js";
 import bidRoutes from "./bid.routes.js";
 import diagnosisRoutes from "./ai.routes.js";
 
@@ -22,9 +22,8 @@ router.use("/payments", paymentRoutes);
 router.use("/reviews", reviewRoutes);
 router.use("/invoices", invoiceRoutes);
 router.use("/warranties", warrantyRoutes);
-router.use("/chat", chatRoutes);
+router.use("/messages", messageRoutes);
 router.use("/bids", bidRoutes);
 router.use("/diagnosis", diagnosisRoutes);
-
 
 export default router;

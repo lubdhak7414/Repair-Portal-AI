@@ -1,6 +1,7 @@
-// payment.controller.js
-import Payment from "../models/payment.model.js";
-import Booking from "../models/booking.model.js";
+import { createPayment as createPaymentModel, getPaymentById, getPaymentByBooking as getPaymentByBookingModel, updatePayment } from "../models/payment.model.js";
+import { getBookingById } from "../models/booking.model.js";
+import { getUserById } from "../models/user.model.js";
+import { getTechnicianById } from "../models/technician.model.js";
 
 // Create payment
 export const createPayment = async (req, res) => {
@@ -14,10 +15,10 @@ export const createPayment = async (req, res) => {
         } = req.body;
 
         // Verify booking exists and is completed
-        const existingBooking = await Booking.findById(booking);
+        const existingBooking = getBookingById(booking);
         if (!existingBooking || existingBooking.status !== 'completed') {
-            return res.status(400).json({ 
-                message: "Booking not found or not completed" 
+            return res.status(400).json({
+                message: "Booking not found or not completed"
             });
         }
 
@@ -25,7 +26,7 @@ export const createPayment = async (req, res) => {
         const platformFee = amount * platformFeeRate;
         const technicianAmount = amount - platformFee;
 
-        const payment = new Payment({
+        const payment = createPaymentModel({
             booking,
             user,
             technician,
@@ -34,8 +35,6 @@ export const createPayment = async (req, res) => {
             platformFee,
             technicianAmount
         });
-
-        await payment.save();
 
         res.status(201).json({
             message: "Payment initiated successfully",
@@ -53,16 +52,12 @@ export const processPayment = async (req, res) => {
         const { paymentId } = req.params;
         const { transactionId, gatewayResponse } = req.body;
 
-        const payment = await Payment.findByIdAndUpdate(
-            paymentId,
-            {
-                status: 'completed',
-                transactionId,
-                gatewayResponse,
-                paidAt: new Date()
-            },
-            { new: true }
-        );
+        const payment = updatePayment(paymentId, {
+            status: 'completed',
+            transactionId,
+            gatewayResponse,
+            paidAt: new Date().toISOString()
+        });
 
         if (!payment) {
             return res.status(404).json({ message: "Payment not found" });
@@ -82,15 +77,22 @@ export const processPayment = async (req, res) => {
 export const getPaymentByBooking = async (req, res) => {
     try {
         const { bookingId } = req.params;
-        
-        const payment = await Payment.findOne({ booking: bookingId })
-            .populate('user', 'name email')
-            .populate('technician')
-            .populate('booking');
+
+        const payment = getPaymentByBookingModel(bookingId);
 
         if (!payment) {
             return res.status(404).json({ message: "Payment not found" });
         }
+
+        // Owner check
+        if (req.user.role !== 'admin' && payment.user !== req.user.id) {
+            return res.status(403).json({ message: 'Not authorized to view this payment' });
+        }
+
+        // Enrich with related data
+        payment.userData = getUserById(payment.user);
+        payment.technicianData = getTechnicianById(payment.technician);
+        payment.bookingData = getBookingById(payment.booking);
 
         res.status(200).json(payment);
     } catch (error) {
@@ -98,4 +100,3 @@ export const getPaymentByBooking = async (req, res) => {
         res.status(500).json({ message: "Server Error" });
     }
 };
-

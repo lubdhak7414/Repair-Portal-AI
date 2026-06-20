@@ -6,22 +6,16 @@ import {
     createWarrantyClaim,
     generateWarrantyPDF
 } from "../controllers/warranty.controller.js";
+import { authenticate, authorize } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { createWarrantyClaimSchema } from '../validators/warranty.validator.js';
 
 const router = express.Router();
 
-// Create warranty for a booking
-router.post("/booking/:bookingId", createWarranty);
-
-// Get warranty by ID
-router.get("/:id", getWarrantyById);
-
-// Get warranties by user
-router.get("/user/:userId", getUserWarranties);
-
-// Create warranty claim
-router.post("/:warrantyId/claims", createWarrantyClaim);
-
-// Generate warranty PDF
-router.get("/:warrantyId/pdf", generateWarrantyPDF);
+router.post("/booking/:bookingId", authenticate, authorize('admin'), createWarranty);
+router.get("/:id", authenticate, getWarrantyById);
+router.get("/user/:userId", authenticate, getUserWarranties);
+router.post("/:warrantyId/claims", authenticate, validate(createWarrantyClaimSchema), createWarrantyClaim);
+router.get("/:warrantyId/pdf", authenticate, generateWarrantyPDF);
 
 export default router;

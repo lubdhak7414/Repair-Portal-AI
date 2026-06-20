@@ -1,45 +1,35 @@
-// controllers/user.controller.js
-import User from '../models/user.model.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { createUser as createUserModel, getUserById as getUserByIdModel, getUserByEmail, getAllUsers as getAllUsersModel, updateUser as updateUserModel, deleteUser as deleteUserModel } from '../models/user.model.js';
 
 // Create a new user
 export const createUser = async (req, res) => {
   try {
     const { name, email, phone, password, address, picture, role } = req.body;
 
-    // 1️⃣ Validate required fields
     if (!name || !email || !phone || !password) {
       return res.status(400).json({ message: "Please provide all required fields" });
     }
 
-    // 2️⃣ Check if email already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
+    const existingUser = getUserByEmail(email.toLowerCase().trim());
     if (existingUser) {
       return res.status(400).json({ message: "Email already in use" });
     }
 
-    // 3️⃣ Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 4️⃣ Create new user
-    const user = new User({
+    const user = createUserModel({
       name: name.trim(),
       email: email.toLowerCase().trim(),
       phone: phone.trim(),
       password: hashedPassword,
       address: address || {},
       picture: picture || "",
-      role: role && ["user", "technician", "admin"].includes(role) ? role : "user", // safe role assignment
+      role: role && ["user", "technician", "admin"].includes(role) ? role : "user",
     });
 
-    // 5️⃣ Save to DB
-    await user.save();
-
-    // 6️⃣ Remove password from response
-    const { password: _, ...userWithoutPassword } = user.toObject();
-
+    const { password: _, ...userWithoutPassword } = user;
     res.status(201).json(userWithoutPassword);
   } catch (error) {
     console.error("Create User Error:", error);
@@ -49,61 +39,78 @@ export const createUser = async (req, res) => {
 
 // Get user by ID
 export const getUserById = async (req, res) => {
-	try {
-		const user = await User.findById(req.params.id);
-		if (!user) {
-			return res.status(404).json({ message: 'User not found' });
-		}
-		res.status(200).json(user);
-	} catch (error) {
-		console.error('Get User Error:', error);
-		res.status(500).json({ message: 'Server Error' });
-	}
+  try {
+    // Owner check: user can read own profile; admin can read any
+    if (req.user.role !== 'admin' && String(req.user.id) !== req.params.id) {
+      return res.status(403).json({ message: 'Not authorized to view this profile' });
+    }
+
+    const user = getUserByIdModel(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Get User Error:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
 };
 
 // Update user
 export const updateUser = async (req, res) => {
-	try {
-		const { name, phone, address, picture, isActive } = req.body;
-		const updatedUser = await User.findByIdAndUpdate(
-			req.params.id,
-			{ name, phone, address, picture, isActive },
-			{ new: true }
-		);
+  try {
+    // Owner check: user can update own profile; admin can update any
+    if (req.user.role !== 'admin' && String(req.user.id) !== req.params.id) {
+      return res.status(403).json({ message: 'Not authorized to update this profile' });
+    }
 
-		if (!updatedUser) {
-			return res.status(404).json({ message: 'User not found' });
-		}
-		res.status(200).json(updatedUser);
-	} catch (error) {
-		console.error('Update User Error:', error);
-		res.status(500).json({ message: 'Server Error' });
-	}
+    const { name, phone, address, picture, isActive } = req.body;
+    const fields = {};
+    if (name !== undefined) fields.name = name;
+    if (phone !== undefined) fields.phone = phone;
+    if (picture !== undefined) fields.picture = picture;
+    if (isActive !== undefined) fields.is_active = isActive ? 1 : 0;
+    if (address) {
+      if (address.street !== undefined) fields.address_street = address.street;
+      if (address.city !== undefined) fields.address_city = address.city;
+      if (address.area !== undefined) fields.address_area = address.area;
+      if (address.postalCode !== undefined) fields.address_postal_code = address.postalCode;
+    }
+
+    const updatedUser = updateUserModel(req.params.id, fields);
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error('Update User Error:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
 };
 
 // Delete user
 export const deleteUser = async (req, res) => {
-	try {
-		const deletedUser = await User.findByIdAndDelete(req.params.id);
-		if (!deletedUser) {
-			return res.status(404).json({ message: 'User not found' });
-		}
-		res.status(200).json({ message: 'User deleted successfully' });
-	} catch (error) {
-		console.error('Delete User Error:', error);
-		res.status(500).json({ message: 'Server Error' });
-	}
+  try {
+    const result = deleteUserModel(req.params.id);
+    if (result.changes === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Delete User Error:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
 };
 
 // Get all users (for admin panel or analytics)
 export const getAllUsers = async (req, res) => {
-	try {
-		const users = await User.find();
-		res.status(200).json(users);
-	} catch (error) {
-		console.error('Get All Users Error:', error);
-		res.status(500).json({ message: 'Server Error' });
-	}
+  try {
+    const users = getAllUsersModel();
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('Get All Users Error:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
 };
 
 // Login user controller
@@ -111,31 +118,31 @@ export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check if the user exists
-    const user = await User.findOne({ email });
+    const user = getUserByEmail(email);
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Compare the entered password with the stored hashed password
+    if (!user.is_active) {
+      return res.status(403).json({ message: 'Account is deactivated' });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Create a JWT token
     const token = jwt.sign(
-      { userId: user._id, email: user.email, role: user.role },
-      process.env.JWT_SECRET, // Set this in your .env file
+      { userId: user.id, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
 
-    // Send the response with the token
     res.status(200).json({
       message: 'Login successful',
       token,
       user: {
-        id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
         phone: user.phone,
@@ -149,5 +156,3 @@ export const loginUser = async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 };
-
-
