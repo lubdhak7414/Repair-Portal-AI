@@ -88,14 +88,15 @@ export const updateUser = async (req, res) => {
   }
 };
 
-// Delete user
+// Delete user (soft delete — sets is_active = 0)
 export const deleteUser = async (req, res) => {
   try {
-    const result = deleteUserModel(req.params.id);
-    if (result.changes === 0) {
+    const existingUser = getUserByIdModel(req.params.id);
+    if (!existingUser) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.status(200).json({ message: 'User deleted successfully' });
+    updateUserModel(req.params.id, { is_active: 0 });
+    res.status(200).json({ message: 'User deactivated successfully' });
   } catch (error) {
     console.error('Delete User Error:', error);
     res.status(500).json({ message: 'Server Error' });
@@ -106,7 +107,10 @@ export const deleteUser = async (req, res) => {
 export const getAllUsers = async (req, res) => {
   try {
     const users = getAllUsersModel();
-    res.status(200).json(users);
+    // Filter out deactivated users unless admin explicitly requests them
+    const includeInactive = req.query.includeInactive === 'true' && req.user?.role === 'admin';
+    const filteredUsers = includeInactive ? users : users.filter(u => u.is_active !== false);
+    res.status(200).json(filteredUsers);
   } catch (error) {
     console.error('Get All Users Error:', error);
     res.status(500).json({ message: 'Server Error' });

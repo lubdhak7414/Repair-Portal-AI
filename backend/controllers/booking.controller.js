@@ -98,7 +98,7 @@ export const updateBooking = async (req, res) => {
     }
 };
 
-// Delete booking
+// Delete booking (soft delete — sets status to 'cancelled')
 export const deleteBooking = async (req, res) => {
     try {
         const existing = getBookingByIdModel(req.params.id);
@@ -106,8 +106,12 @@ export const deleteBooking = async (req, res) => {
             return res.status(404).json({ message: "Booking not found" });
         }
 
-        deleteBookingModel(req.params.id);
-        res.status(200).json({ message: "Booking deleted successfully" });
+        const cancelledBooking = updateBookingModel(req.params.id, {
+            status: 'cancelled',
+            cancellationReason: 'Deleted by admin',
+            cancelledAt: new Date().toISOString(),
+        });
+        res.status(200).json({ message: "Booking cancelled successfully", booking: cancelledBooking });
     } catch (error) {
         console.error("Delete Booking Error:", error);
         res.status(500).json({ message: "Server Error" });

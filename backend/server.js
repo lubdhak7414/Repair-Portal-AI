@@ -1,5 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { getDb } from "./config/db.js";
 import apiRoutes from "./routes/index.js";
 import cors from "cors";
@@ -14,10 +16,33 @@ console.log("Loaded PORT from .env:", process.env.PORT);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const corsOrigin = process.env.CORS_ORIGIN || "http://localhost:5173";
 
-// CORS configuration
+// ---- Security Headers ----
+app.use(helmet());
+
+// ---- Rate Limiting ----
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many requests, please try again later.' },
+});
+app.use(globalLimiter);
+
+// Stricter limiter for AI diagnosis endpoint (5 req/min)
+const aiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many diagnosis requests. Please wait before trying again.' },
+});
+
+// ---- CORS Configuration ----
 const corsOptions = {
-  origin: "http://localhost:5173",
+  origin: corsOrigin,
 };
 
 app.use(cors(corsOptions));
@@ -27,6 +52,9 @@ app.use(express.json({ limit: '10mb' }));
 
 // Initialize DB
 getDb();
+
+// Apply AI rate limiter before the diagnosis route
+app.use("/api/diagnosis", aiLimiter);
 
 // API Routes — single mount point
 app.use("/api", apiRoutes);
@@ -42,7 +70,7 @@ app.use(errorHandler);
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: 'http://localhost:5173',
+    origin: corsOrigin,
     methods: ['GET', 'POST']
   }
 });
