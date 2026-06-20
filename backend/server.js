@@ -1,15 +1,13 @@
 import express from "express";
 import dotenv from "dotenv";
-import connectDB from "./config/db.js";
+import { getDb } from "./config/db.js";
 import apiRoutes from "./routes/index.js";
-import cors from "cors";  // Import the cors package
-import technicianRoutes from './routes/TechnicianRoutes.js'
-import BookingRoutes from './routes/BookingRoutes.js'
-import Message from './models/message.model.js';
-import MessageRoute from './routes/MessageRoutes.js';
+import cors from "cors";
+import { createMessage } from './models/message.model.js';
+import { errorHandler } from './middleware/error-handler.js';
 
-import {createServer} from 'http';
-import {Server} from 'socket.io';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
 dotenv.config();
 console.log("Loaded PORT from .env:", process.env.PORT);
@@ -17,25 +15,20 @@ console.log("Loaded PORT from .env:", process.env.PORT);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// CORS configuration: Allow localhost:5173
+// CORS configuration
 const corsOptions = {
-  origin: "http://localhost:5173",  // Allow only localhost:5173
+  origin: "http://localhost:5173",
 };
 
-// Apply CORS middleware
 app.use(cors(corsOptions));
 
-// Middleware
-app.use(express.json());
-app.use('/api/technicians', technicianRoutes);
-app.use('/api/techDashboard',BookingRoutes);
-app.use('/api/messages',MessageRoute);
+// Middleware — single express.json
 app.use(express.json({ limit: '10mb' }));
 
-// Connect to DB
-connectDB();
+// Initialize DB
+getDb();
 
-// API Routes
+// API Routes — single mount point
 app.use("/api", apiRoutes);
 
 // Health check
@@ -43,13 +36,14 @@ app.get("/", (req, res) => {
   res.send("Server is up and running!");
 });
 
-//intesar
+// Error handler (must be last middleware, before server create)
+app.use(errorHandler);
 
 const httpServer = createServer(app);
-const io = new Server(httpServer,{
-  cors:{
-    origin:'http://localhost:5173',
-    methods: ['GET','POST']
+const io = new Server(httpServer, {
+  cors: {
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST']
   }
 });
 
@@ -64,20 +58,24 @@ io.on('connection', (socket) => {
   });
 
   // Send message
-  socket.on('sendMessage', async (messageData) => {
-    const { conversationId, sender, receiver, content } = messageData;
-    
-    // Save to database
-    const newMessage = new Message({
-      conversationId,
-      sender,
-      receiver,
-      content,
-    });
-    await newMessage.save();
-    
-    // Emit to conversation room
-    io.to(conversationId).emit('receiveMessage', newMessage);
+  socket.on('sendMessage', (messageData) => {
+    try {
+      const { conversationId, sender, receiver, content } = messageData;
+
+      // Save to database using SQLite model
+      const newMessage = createMessage({
+        conversationId,
+        sender,
+        receiver,
+        content,
+        messageType: 'text',
+      });
+
+      // Emit to conversation room
+      io.to(conversationId).emit('receiveMessage', newMessage);
+    } catch (error) {
+      console.error('Error saving message:', error);
+    }
   });
 
   // Leave conversation
@@ -91,8 +89,5 @@ io.on('connection', (socket) => {
 });
 
 httpServer.listen(PORT, () => {
-  connectDB();
   console.log(`Server running on port ${PORT}`);
 });
-
-

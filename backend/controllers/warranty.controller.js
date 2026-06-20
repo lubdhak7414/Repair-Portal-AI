@@ -1,5 +1,9 @@
-// warranty.controller.js
-import Warranty from "../models/warranty.model.js";
+import { createWarranty as createWarrantyModel, getWarrantyById as getWarrantyByIdModel, getWarrantyByBooking, getUserWarranties as getUserWarrantiesModel, updateWarranty } from "../models/warranty.model.js";
+import { getBookingById } from "../models/booking.model.js";
+import { getInvoiceByBooking } from "../models/invoice.model.js";
+import { getUserById } from "../models/user.model.js";
+import { getTechnicianById } from "../models/technician.model.js";
+import { getServiceById } from "../models/service.model.js";
 
 // Generate warranty number helper
 const generateWarrantyNumber = () => {
@@ -12,36 +16,37 @@ const generateWarrantyNumber = () => {
 export const createWarranty = async (req, res) => {
     try {
         const { bookingId } = req.params;
-        
-        // Get booking and invoice
-        const booking = await Booking.findById(bookingId)
-            .populate('user')
-            .populate('technician')
-            .populate('service');
+
+        // Get booking
+        const booking = getBookingById(bookingId);
 
         if (!booking || booking.status !== 'completed') {
-            return res.status(400).json({ 
-                message: "Booking not found or not completed" 
+            return res.status(400).json({
+                message: "Booking not found or not completed"
             });
         }
 
-        const invoice = await Invoice.findOne({ booking: bookingId });
+        const bookingUser = getUserById(booking.user);
+        const bookingTechnician = booking.technician ? getTechnicianById(booking.technician) : null;
+        const bookingService = getServiceById(booking.service);
+
+        const invoice = getInvoiceByBooking(bookingId);
         if (!invoice) {
-            return res.status(400).json({ 
-                message: "Invoice not found for this booking" 
+            return res.status(400).json({
+                message: "Invoice not found for this booking"
             });
         }
 
         // Check if warranty already exists
-        const existingWarranty = await Warranty.findOne({ booking: bookingId });
+        const existingWarranty = getWarrantyByBooking(bookingId);
         if (existingWarranty) {
-            return res.status(400).json({ 
-                message: "Warranty already exists for this booking" 
+            return res.status(400).json({
+                message: "Warranty already exists for this booking"
             });
         }
 
         const warrantyNumber = generateWarrantyNumber();
-        
+
         // Default warranty terms based on service category
         const getWarrantyPeriod = (category) => {
             const periods = {
@@ -53,19 +58,18 @@ export const createWarranty = async (req, res) => {
             return periods[category] || { duration: 30, unit: 'days' };
         };
 
-        const warrantyPeriod = getWarrantyPeriod(booking.service.category);
+        const warrantyPeriod = getWarrantyPeriod(bookingService ? bookingService.category : '');
 
-        const warranty = new Warranty({
+        const warranty = createWarrantyModel({
             booking: bookingId,
-            invoice: invoice._id,
+            invoice: invoice.id,
             warrantyNumber,
-            user: booking.user._id,
-            technician: booking.technician._id,
-            service: {
-                name: booking.service.name,
-                category: booking.service.category
-            },
-            warrantyPeriod,
+            user: booking.user,
+            technician: bookingTechnician ? bookingTechnician.id : booking.technician,
+            serviceName: bookingService ? bookingService.name : '',
+            serviceCategory: bookingService ? bookingService.category : '',
+            warrantyDuration: warrantyPeriod.duration,
+            warrantyUnit: warrantyPeriod.unit,
             coverageDetails: [
                 {
                     item: "Parts Replacement",
@@ -85,10 +89,8 @@ export const createWarranty = async (req, res) => {
                 "Warranty is non-transferable"
             ],
             serviceDate: booking.completedAt,
-            qrCode: `warranty-${warrantyNumber}` // Mock QR code
+            qrCode: `warranty-${warrantyNumber}`
         });
-
-        await warranty.save();
 
         res.status(201).json({
             message: "Warranty card created successfully",
@@ -103,15 +105,21 @@ export const createWarranty = async (req, res) => {
 // Get warranty by ID
 export const getWarrantyById = async (req, res) => {
     try {
-        const warranty = await Warranty.findById(req.params.id)
-            .populate('user', 'name email phone')
-            .populate('technician')
-            .populate('booking')
-            .populate('invoice');
+        const warranty = getWarrantyByIdModel(req.params.id);
 
         if (!warranty) {
             return res.status(404).json({ message: "Warranty not found" });
         }
+
+        // Owner check
+        if (req.user.role !== 'admin' && warranty.user !== req.user.id) {
+            return res.status(403).json({ message: 'Not authorized to view this warranty' });
+        }
+
+        // Enrich with related data
+        warranty.userData = getUserById(warranty.user);
+        warranty.technicianData = getTechnicianById(warranty.technician);
+        warranty.bookingData = getBookingById(warranty.booking);
 
         res.status(200).json(warranty);
     } catch (error) {
@@ -124,32 +132,21 @@ export const getWarrantyById = async (req, res) => {
 export const getUserWarranties = async (req, res) => {
     try {
         const { userId } = req.params;
-        const { page = 1, limit = 10, status = 'active' } = req.query;
 
-        const query = { user: userId };
-        
-        if (status === 'active') {
-            query.isActive = true;
-            query.expiryDate = { $gt: new Date() };
-        } else if (status === 'expired') {
-            query.expiryDate = { $lt: new Date() };
+        // Owner check
+        if (req.user.role !== 'admin' && String(req.user.id) !== userId) {
+            return res.status(403).json({ message: 'Not authorized to view these warranties' });
         }
 
-        const warranties = await Warranty.find(query)
-            .populate('technician', 'user')
-            .populate('booking', 'service completedAt')
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
-            .sort({ createdAt: -1 });
+        const { page = 1, limit = 10, status = 'active' } = req.query;
 
-        const total = await Warranty.countDocuments(query);
-
-        res.status(200).json({
-            warranties,
-            totalPages: Math.ceil(total / limit),
-            currentPage: page,
-            total
+        const result = getUserWarrantiesModel(userId, {
+            status,
+            page: Number(page),
+            limit: Number(limit)
         });
+
+        res.status(200).json(result);
     } catch (error) {
         console.error("Get User Warranties Error:", error);
         res.status(500).json({ message: "Server Error" });
@@ -162,28 +159,36 @@ export const createWarrantyClaim = async (req, res) => {
         const { warrantyId } = req.params;
         const { description } = req.body;
 
-        const warranty = await Warranty.findById(warrantyId);
+        const warranty = getWarrantyByIdModel(warrantyId);
         if (!warranty) {
             return res.status(404).json({ message: "Warranty not found" });
         }
 
+        // Owner check
+        if (warranty.user !== req.user.id) {
+            return res.status(403).json({ message: 'Not authorized to claim on this warranty' });
+        }
+
         // Check if warranty is still active
-        if (!warranty.isActive || warranty.expiryDate < new Date()) {
+        if (!warranty.isActive || new Date(warranty.expiryDate) < new Date()) {
             return res.status(400).json({ message: "Warranty has expired" });
         }
 
         // Add claim to warranty history
-        warranty.claimsHistory.push({
-            claimDate: new Date(),
+        const claimsHistory = warranty.claimsHistory || [];
+        claimsHistory.push({
+            claimDate: new Date().toISOString(),
             description,
             status: 'pending'
         });
 
-        await warranty.save();
+        const updatedWarranty = updateWarranty(warrantyId, {
+            claimsHistory
+        });
 
         res.status(200).json({
             message: "Warranty claim submitted successfully",
-            warranty
+            warranty: updatedWarranty
         });
     } catch (error) {
         console.error("Create Warranty Claim Error:", error);
@@ -195,20 +200,22 @@ export const createWarrantyClaim = async (req, res) => {
 export const generateWarrantyPDF = async (req, res) => {
     try {
         const { warrantyId } = req.params;
-        
-        const warranty = await Warranty.findById(warrantyId)
-            .populate('user', 'name email phone')
-            .populate('technician')
-            .populate('booking');
+
+        const warranty = getWarrantyByIdModel(warrantyId);
 
         if (!warranty) {
             return res.status(404).json({ message: "Warranty not found" });
         }
 
+        // Owner check
+        if (req.user.role !== 'admin' && warranty.user !== req.user.id) {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
         // Mock PDF generation
         const pdfUrl = `https://your-cdn.com/warranties/${warranty.warrantyNumber}.pdf`;
-        
-        await Warranty.findByIdAndUpdate(warrantyId, { pdfUrl });
+
+        updateWarranty(warrantyId, { pdfUrl });
 
         res.status(200).json({
             message: "Warranty PDF generated successfully",
@@ -220,4 +227,3 @@ export const generateWarrantyPDF = async (req, res) => {
         res.status(500).json({ message: "Server Error" });
     }
 };
-

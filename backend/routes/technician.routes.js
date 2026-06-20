@@ -1,27 +1,35 @@
 import express from "express";
 import {
     createTechnician,
+    createOrUpdateTechnician,
     searchTechnicians,
+    searchTechniciansByPost,
     getTechnicianById,
+    getAllTechniciansListing,
+    deleteTechnicianById,
     getTechnicianDashboard,
     updateBookingStatus
 } from "../controllers/technician.controller.js";
+import { authenticate, authorize } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { createTechnicianSchema, searchTechniciansSchema } from '../validators/technician.validator.js';
 
 const router = express.Router();
 
-// Create technician profile
-router.post("/", createTechnician);
-
-// Search technicians
+// Public routes
+router.get("/", getAllTechniciansListing);
+router.post("/search", validate(searchTechniciansSchema), searchTechniciansByPost);
 router.get("/search", searchTechnicians);
-
-// Get technician by ID
 router.get("/:id", getTechnicianById);
 
-// Get technician dashboard data
-router.get("/:technicianId/dashboard", getTechnicianDashboard);
+// Authenticated — technician registration
+router.post("/", authenticate, validate(createTechnicianSchema), createOrUpdateTechnician);
 
-// Accept/Reject booking
-router.put("/bookings/:bookingId/status", updateBookingStatus);
+// Admin only
+router.delete("/:id", authenticate, authorize('admin'), deleteTechnicianById);
+
+// Technician only
+router.get("/:technicianId/dashboard", authenticate, authorize('technician'), getTechnicianDashboard);
+router.put("/bookings/:bookingId/status", authenticate, authorize('technician'), updateBookingStatus);
 
 export default router;

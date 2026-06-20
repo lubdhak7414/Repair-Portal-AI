@@ -4,16 +4,14 @@ import {
     getTechnicianReviews,
     respondToReview
 } from "../controllers/review.controller.js";
+import { authenticate, authorize } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { createReviewSchema, respondToReviewSchema } from '../validators/review.validator.js';
 
 const router = express.Router();
 
-// Create review
-router.post("/", createReview);
-
-// Get reviews for technician
-router.get("/technician/:technicianId", getTechnicianReviews);
-
-// Technician respond to review
-router.put("/:reviewId/respond", respondToReview);
+router.post("/", authenticate, authorize('user'), validate(createReviewSchema), createReview);
+router.get("/technician/:technicianId", getTechnicianReviews);  // Public
+router.put("/:reviewId/respond", authenticate, authorize('technician'), validate(respondToReviewSchema), respondToReview);
 
 export default router;

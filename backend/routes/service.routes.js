@@ -7,25 +7,20 @@ import {
     updateService,
     deleteService
 } from "../controllers/service.controller.js";
+import { authenticate, authorize } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { createServiceSchema, updateServiceSchema } from '../validators/service.validator.js';
 
 const router = express.Router();
 
-// Create a new service
-router.post("/", createService);
-
-// Get all services (with filters & pagination)
+// Public routes (no auth required)
 router.get("/", getAllServices);
-
-// Get service categories
 router.get("/categories", getServiceCategories);
-
-// Get service by ID
 router.get("/:id", getServiceById);
 
-// Update service
-router.put("/:id", updateService);
-
-// Delete service by ID
-router.delete("/:id", deleteService);
+// Admin only
+router.post("/", authenticate, authorize('admin'), validate(createServiceSchema), createService);
+router.put("/:id", authenticate, authorize('admin'), validate(updateServiceSchema), updateService);
+router.delete("/:id", authenticate, authorize('admin'), deleteService);
 
 export default router;

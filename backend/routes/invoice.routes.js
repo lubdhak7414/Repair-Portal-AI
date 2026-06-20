@@ -5,19 +5,13 @@ import {
     getUserInvoices,
     generateInvoicePDF
 } from "../controllers/invoice.controller.js";
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Create invoice for a booking
-router.post("/booking/:bookingId", createInvoice);
-
-// Get invoice by ID
-router.get("/:id", getInvoiceById);
-
-// Get invoices by user
-router.get("/user/:userId", getUserInvoices);
-
-// Generate invoice PDF
-router.get("/:invoiceId/pdf", generateInvoicePDF);
+router.post("/booking/:bookingId", authenticate, authorize('admin'), createInvoice);
+router.get("/:id", authenticate, getInvoiceById);
+router.get("/user/:userId", authenticate, getUserInvoices);
+router.get("/:invoiceId/pdf", authenticate, generateInvoicePDF);
 
 export default router;
