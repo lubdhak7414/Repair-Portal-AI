@@ -26,7 +26,7 @@ export const createUser = async (req, res) => {
       password: hashedPassword,
       address: address || {},
       picture: picture || "",
-      role: role && ["user", "technician", "admin"].includes(role) ? role : "user",
+      role: role && ["user", "technician"].includes(role) ? role : "user",
     });
 
     const { password: _, ...userWithoutPassword } = user;
@@ -49,7 +49,8 @@ export const getUserById = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.status(200).json(user);
+    const { password: _pw, ...userWithoutPassword } = user;
+    res.status(200).json(userWithoutPassword);
   } catch (error) {
     console.error('Get User Error:', error);
     res.status(500).json({ message: 'Server Error' });
@@ -105,7 +106,8 @@ export const updateUser = async (req, res) => {
     if (!updatedUser) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.status(200).json(updatedUser);
+    const { password: _pw, ...userWithoutPassword } = updatedUser;
+    res.status(200).json(userWithoutPassword);
   } catch (error) {
     console.error('Update User Error:', error);
     res.status(500).json({ message: 'Server Error' });
@@ -134,7 +136,8 @@ export const getAllUsers = async (req, res) => {
     // Filter out deactivated users unless admin explicitly requests them
     const includeInactive = req.query.includeInactive === 'true' && req.user?.role === 'admin';
     const filteredUsers = includeInactive ? users : users.filter(u => u.is_active !== false);
-    res.status(200).json(filteredUsers);
+    const sanitized = filteredUsers.map(({ password: _pw, ...rest }) => rest);
+    res.status(200).json(sanitized);
   } catch (error) {
     console.error('Get All Users Error:', error);
     res.status(500).json({ message: 'Server Error' });

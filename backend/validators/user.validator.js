@@ -7,7 +7,7 @@ export const registerSchema = Joi.object({
     .pattern(/^\+?[0-9]{7,15}$/)
     .required(),
   password: Joi.string().min(6).max(128).required(),
-  role: Joi.string().valid('user', 'technician', 'admin').default('user'),
+  role: Joi.string().valid('user', 'technician').default('user'),
   address: Joi.object({
     street: Joi.string().allow('').default(''),
     city: Joi.string().allow('').default(''),

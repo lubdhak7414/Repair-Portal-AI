@@ -86,20 +86,25 @@ const io = new Server(httpServer, {
 // Track user-to-socket mapping for notifications
 const userSocketMap = new Map();
 
+// Dev-only socket logging (silenced in production to avoid noisy logs)
+const logSocket = (...args) => {
+  if (process.env.NODE_ENV !== 'production') console.log(...args);
+};
+
 // Socket.io Connection
 io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
+  logSocket('User connected:', socket.id);
 
   // Register user for targeted notifications (Phase 8)
   socket.on('registerUser', (userId) => {
     userSocketMap.set(String(userId), socket.id);
-    console.log(`User ${userId} registered with socket ${socket.id}`);
+    logSocket(`User ${userId} registered with socket ${socket.id}`);
   });
 
   // Join conversation room
   socket.on('joinConversation', (conversationId) => {
     socket.join(conversationId);
-    console.log(`User joined conversation: ${conversationId}`);
+    logSocket(`User joined conversation: ${conversationId}`);
   });
 
   // Send message
@@ -136,7 +141,7 @@ io.on('connection', (socket) => {
         break;
       }
     }
-    console.log('User disconnected:', socket.id);
+    logSocket('User disconnected:', socket.id);
   });
 });
 

@@ -35,7 +35,6 @@ Respond only with valid JSON. No intro, no Markdown, no explanation.
 `;
 
   try {
-    console.log('Incoming Request:', req.body);
     const { description, images } = req.body;
 
     if (!description && (!images || images.length === 0)) {
