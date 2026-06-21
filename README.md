@@ -36,3 +36,42 @@ Analytics Dashboard: An admin-level feature to view platform metrics like top se
 Intelligent Technician Matching: An algorithm that proactively suggests the top 3 technicians for a request based on multiple data points (proximity, rating, availability). This is an advanced version of the basic search in Module 1.
 Inventory & Parts Marketplace: An e-commerce-style platform for technicians to sell repair parts to each other or to users.
 Community Fix Days / Repair Drives: A feature for organizing community-based repair events, fostering social impact and brand loyalty.
+
+---
+
+## Development
+
+### Stack
+- **Frontend:** React 19 + Vite + Tailwind CSS v4 + shadcn/ui
+- **Backend:** Express 5 + Socket.io + SQLite (`better-sqlite3`)
+- **AI:** Google Gemini (`@google/generative-ai`) for repair diagnosis
+
+### Getting started
+```bash
+# 1. Install dependencies (root = backend deps, frontend/ = frontend deps)
+npm install
+npm install --prefix frontend
+
+# 2. Configure environment
+cp .env.example .env            # then fill in JWT_SECRET and GEMINI_API_KEY
+cp frontend/.env.example frontend/.env
+
+# 3. (Optional) seed the database with sample data
+npm run seed
+
+# 4. Run backend + frontend together
+npm run dev                     # backend :3000, frontend :5173
+```
+
+### Useful scripts (from root)
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Run backend + frontend concurrently |
+| `npm start` | Run the backend only |
+| `npm test` | Run the backend test suite (Vitest + Supertest) |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run seed` | Seed the SQLite database |
+| `npm run backup-db` | Back up the SQLite database |
+| `npm run lint` | Lint the frontend |
+
+The SQLite database is created automatically at `backend/data/repair-portal.db` (override with `DB_PATH`). No external database server is required.

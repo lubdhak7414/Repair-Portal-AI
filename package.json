@@ -7,6 +7,8 @@
     "start": "node backend/server.js",
     "seed": "node backend/scripts/seed.js",
     "backup-db": "node backend/scripts/backup-db.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "npm run lint --prefix frontend"
   },
   "type": "module",
@@ -35,6 +37,8 @@
   },
   "devDependencies": {
     "concurrently": "^9.2.0",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.9"
   }
 }

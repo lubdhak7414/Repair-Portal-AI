@@ -1,26 +1,45 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import LandingPage from './LandingPage.jsx';
 import NotFoundPage from './NotFoundPage.jsx';
-import { TechnicianOnboarding } from './pages/TechnicianOnboarding.jsx';
-import { ServiceBooking } from './ServiceBooking.jsx';
-import { BookingStatus } from './BookingStatus.jsx';
 import { AuthProvider } from './context/AuthContext';
-import { ReviewTechnician } from './ReviewTechnician.jsx';
 import ProtectedRoutes from './context/ProtectedRoutes.jsx';
-import {UserBookings} from './UserBookingsDetails.jsx';
-import { TechnicianBiddingPage } from './TechnicianBidding.jsx';
-import { TechnicianBidsPage } from './TechnicianBidsPage.jsx';
 import './index.css';
 import Layout from './Layout.jsx';
-import AdminDashboard from './AdminDashboard.jsx';
-import {RepairDiagnosis} from './RepairDiagnosis.jsx';
-import SearchTechnicians from './components/SearchTechnician.jsx';
-import PaymentGateway from './components/PaymentGateway.jsx';
-import TechnicianDashboard from './components/TechnicianDashboard.jsx';
 import { SocketProvider } from './context/socket.provider.jsx';
-import ProfilePage from './ProfilePage.jsx';
+
+// Route pages are code-split so each loads only when its route is visited.
+// Named exports are unwrapped to the `default` shape React.lazy expects.
+const TechnicianOnboarding = lazy(() =>
+  import('./pages/TechnicianOnboarding.jsx').then((m) => ({ default: m.TechnicianOnboarding }))
+);
+const ServiceBooking = lazy(() =>
+  import('./ServiceBooking.jsx').then((m) => ({ default: m.ServiceBooking }))
+);
+const BookingStatus = lazy(() =>
+  import('./BookingStatus.jsx').then((m) => ({ default: m.BookingStatus }))
+);
+const ReviewTechnician = lazy(() =>
+  import('./ReviewTechnician.jsx').then((m) => ({ default: m.ReviewTechnician }))
+);
+const UserBookings = lazy(() =>
+  import('./UserBookingsDetails.jsx').then((m) => ({ default: m.UserBookings }))
+);
+const TechnicianBiddingPage = lazy(() =>
+  import('./TechnicianBidding.jsx').then((m) => ({ default: m.TechnicianBiddingPage }))
+);
+const TechnicianBidsPage = lazy(() =>
+  import('./TechnicianBidsPage.jsx').then((m) => ({ default: m.TechnicianBidsPage }))
+);
+const RepairDiagnosis = lazy(() =>
+  import('./RepairDiagnosis.jsx').then((m) => ({ default: m.RepairDiagnosis }))
+);
+const AdminDashboard = lazy(() => import('./AdminDashboard.jsx'));
+const SearchTechnicians = lazy(() => import('./components/SearchTechnician.jsx'));
+const PaymentGateway = lazy(() => import('./components/PaymentGateway.jsx'));
+const TechnicianDashboard = lazy(() => import('./components/TechnicianDashboard.jsx'));
+const ProfilePage = lazy(() => import('./ProfilePage.jsx'));
 
 // Define your routes
 const router = createBrowserRouter([
@@ -98,13 +117,24 @@ const router = createBrowserRouter([
   },
 ]);
 
+// Lightweight fallback shown while a route chunk is loading.
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center min-h-[50vh] text-muted-foreground">
+      Loading…
+    </div>
+  );
+}
+
 // Wrap the RouterProvider with the AuthProvider to provide authentication context globally
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <AuthProvider>
       <SocketProvider>
       <Layout>
-        <RouterProvider router={router} />
+        <Suspense fallback={<PageLoader />}>
+          <RouterProvider router={router} />
+        </Suspense>
       </Layout>
       </SocketProvider>
     </AuthProvider>
