@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../lib/api.js";
 import ChatBox from '../components/Chatbox.jsx';
 
 
@@ -43,12 +43,10 @@ const TechnicianDashboard = () => {
   //   _id: '689dbc1e7f68c9bd1ffb7cdd', //this is the user.id of the technicianid since in chatbox user.id is used//John Doe
   // }
   
-  const apiUrl = import.meta.env.VITE_API_URL;
-
   useEffect(() => {
     const fetchConversations = async () => {
       try {
-        const res = await axios.get(`${apiUrl}/messages/${user.id}/conversations`);
+        const res = await api.get(`/messages/${user.id}/conversations`);
         setConversations(res.data);
       } catch (err) {
         console.error('Error fetching conversations:', err);
@@ -62,9 +60,7 @@ const TechnicianDashboard = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const res = await axios.get(`${apiUrl}/bookings/technician/${user.id}/bookings?status=${filter}`
-
-        );
+        const res = await api.get(`/bookings/technician/${user.id}/bookings?status=${filter}`);
         setBookings(res.data);
         setLoading(false);
       } catch (err) {
@@ -77,7 +73,7 @@ const TechnicianDashboard = () => {
         const counts = {};
         const statuses = ["pending", "accepted", "in-progress", "completed", "cancelled"];
         for (const status of statuses) {
-          const res = await axios.get(`${apiUrl}/bookings/technician/${user.id}/bookings?status=${status}`);
+          const res = await api.get(`/bookings/technician/${user.id}/bookings?status=${status}`);
           counts[status] = res.data.length;
         }
         setBookingCounts(counts);
@@ -92,8 +88,8 @@ const TechnicianDashboard = () => {
 
   const handleCancelConfirm = async (bookingId, reason, status) => {
     try {
-      const { data } = await axios.patch(
-        `${apiUrl}/bookings/technician/${bookingId}/status`,
+      const { data } = await api.patch(
+        `/bookings/technician/${bookingId}/status`,
         { 
           status: status, 
           userId: user.id,
@@ -122,8 +118,8 @@ const TechnicianDashboard = () => {
       return;
     }
     try {
-      const { data } = await axios.patch(
-        `${apiUrl}/bookings/technician/${bookingId}/status`,
+      const { data } = await api.patch(
+        `/bookings/technician/${bookingId}/status`,
         { status: newStatus, userId: user.id }
       );
       setBookings(bookings.map(booking => 
@@ -330,13 +326,13 @@ const TechnicianDashboard = () => {
               bookings.map((booking) => (
                 <tr key={booking.id} style={{backgroundColor:'#dad7d7', borderBottom: '1px solid #b5b4b4'}}>
 
-                <td style={{ padding: '12px',color:'#000'}}>{booking.user.name}</td>
+                <td style={{ padding: '12px',color:'#000'}}>{booking.userData?.name}</td>
                 <td style={{ padding: '12px',color:'#000',textAlign:'center'}}>{booking.address}</td>
-                <td style={{ padding: '12px',color:'#000' }}>{booking.user.phone}</td>
+                <td style={{ padding: '12px',color:'#000' }}>{booking.userData?.phone}</td>
                 <td style={{ padding: '12px' ,color:'#000'}}>{new Date(booking.preferredDate).toLocaleDateString()},{" "}
                 {booking.preferredTime}</td>
 
-                <td style={{ padding: '12px' ,color:'#000'}}>{booking.service.name}</td>
+                <td style={{ padding: '12px' ,color:'#000'}}>{booking.serviceData?.name}</td>
                 <td style={{ padding: '12px' ,color:'#000',textAlign:'center'}}>{booking.description}</td>
                 <td style={{ padding: '12px' ,color:'#000'}}>{booking.urgency}</td>
                 <td style={{ padding: '12px' ,color:'#000'}}>{booking.status}</td>

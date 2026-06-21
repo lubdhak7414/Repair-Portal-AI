@@ -246,7 +246,50 @@ async function seed() {
     completedAt: '2026-06-10T15:00:00.000Z',
   });
 
-  console.log('  Bookings created (4: 2 completed, 1 pending, 1 bidding)');
+  // Active jobs assigned to Karim (tech1) so his dashboard shows live work
+  createBooking({
+    user: user2.id,
+    technician: tech1.id,
+    service: s1.id,
+    description: 'AC making loud noise with weak airflow',
+    preferredDate: '2026-06-23',
+    preferredTime: '09:30',
+    urgency: 'high',
+    address: '8 Client Ave, Uttara, Dhaka',
+    estimatedCost: 1500,
+    isBidding: false,
+    status: 'pending',
+  });
+
+  const booking6 = createBooking({
+    user: user1.id,
+    technician: tech1.id,
+    service: s4.id,
+    description: 'Refrigerator door seal worn out, cooling is inconsistent',
+    preferredDate: '2026-06-24',
+    preferredTime: '13:00',
+    urgency: 'medium',
+    address: '12/A Gulshan Avenue, Banani, Dhaka',
+    estimatedCost: 1800,
+    isBidding: false,
+  });
+  updateBooking(booking6.id, { status: 'accepted' });
+
+  const booking7 = createBooking({
+    user: user2.id,
+    technician: tech1.id,
+    service: s2.id,
+    description: 'Bathroom pipe burst, water leaking into the wall',
+    preferredDate: '2026-06-21',
+    preferredTime: '16:00',
+    urgency: 'high',
+    address: '8 Client Ave, Uttara, Dhaka',
+    estimatedCost: 2200,
+    isBidding: false,
+  });
+  updateBooking(booking7.id, { status: 'in-progress' });
+
+  console.log('  Bookings created (7: 2 completed, 1 pending unassigned, 1 bidding, 3 active for Karim)');
 
   // ---- Bids (4 total on the bidding bookings) ----
   // Bids reference users(id) for technician_id
