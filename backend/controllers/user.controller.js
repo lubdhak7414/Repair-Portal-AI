@@ -56,7 +56,7 @@ export const getUserById = async (req, res) => {
   }
 };
 
-// Update user
+// Update user — merged: role handling (Phase 8) + currentPassword verification (Phase 9)
 export const updateUser = async (req, res) => {
   try {
     // Owner check: user can update own profile; admin can update any
@@ -64,17 +64,41 @@ export const updateUser = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to update this profile' });
     }
 
-    const { name, phone, address, picture, isActive } = req.body;
+    const { name, phone, address, picture, isActive, role, password, currentPassword } = req.body;
     const fields = {};
     if (name !== undefined) fields.name = name;
     if (phone !== undefined) fields.phone = phone;
     if (picture !== undefined) fields.picture = picture;
     if (isActive !== undefined) fields.is_active = isActive ? 1 : 0;
+
+    // Phase 8: Allow role update only to valid roles — admins only (prevents self-escalation)
+    if (role && ['user', 'technician', 'admin'].includes(role) && req.user.role === 'admin') {
+      fields.role = role;
+    }
+
     if (address) {
       if (address.street !== undefined) fields.address_street = address.street;
       if (address.city !== undefined) fields.address_city = address.city;
       if (address.area !== undefined) fields.address_area = address.area;
       if (address.postalCode !== undefined) fields.address_postal_code = address.postalCode;
+    }
+
+    // Phase 9: Password change requires current password verification
+    if (password) {
+      if (!currentPassword) {
+        return res.status(400).json({ message: 'Current password is required to set a new password' });
+      }
+      // Fetch full user record (with password hash) — synchronous SQLite
+      const existingUser = getUserByIdModel(req.params.id);
+      if (!existingUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      const isMatch = await bcrypt.compare(currentPassword, existingUser.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Current password is incorrect' });
+      }
+      const salt = await bcrypt.genSalt(10);
+      fields.password = await bcrypt.hash(password, salt);
     }
 
     const updatedUser = updateUserModel(req.params.id, fields);

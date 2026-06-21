@@ -161,7 +161,7 @@ const SearchTechnicians = () => {
       ) : (
         <ul className="tech-results">
           {results.map((tech) => (
-            <li key={tech._id}>
+            <li key={tech.id}>
               <img
                 // src={tech.user.picture}
                 // src='../assets/'

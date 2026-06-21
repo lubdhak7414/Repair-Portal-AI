@@ -27,6 +27,8 @@ export const updateUserSchema = Joi.object({
   phone: Joi.string().pattern(/^\+?[0-9]{7,15}$/),
   picture: Joi.string().uri().allow(''),
   isActive: Joi.boolean(),
+  role: Joi.string().valid('user', 'technician', 'admin'),
+  currentPassword: Joi.string().max(128),
   address: Joi.object({
     street: Joi.string().allow(''),
     city: Joi.string().allow(''),

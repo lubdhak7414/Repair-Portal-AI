@@ -146,7 +146,7 @@ export function TechnicianBiddingPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          booking: selectedBooking._id,
+          booking: selectedBooking.id,
           technician: user.id,
           bidAmount: parseFloat(bidAmount),
           message,
@@ -160,7 +160,7 @@ export function TechnicianBiddingPage() {
         alert('Your bid has been submitted successfully!');
         setBidDialogOpen(false);
         setBookings(prevBookings => 
-          prevBookings.filter(booking => booking._id !== selectedBooking._id)
+          prevBookings.filter(booking => booking.id !== selectedBooking.id)
         );
       } else {
         throw new Error(data.message || 'Failed to place the bid. Please try again.');
@@ -200,7 +200,7 @@ export function TechnicianBiddingPage() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {bookings.map((booking) => (
               <Card
-                key={booking._id}
+                key={booking.id}
                 className="cursor-pointer transition-all hover:shadow-lg hover:scale-105"
                 onClick={() => handleCardClick(booking)}
               >

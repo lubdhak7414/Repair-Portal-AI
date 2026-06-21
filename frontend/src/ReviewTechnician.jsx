@@ -48,7 +48,7 @@ export function ReviewTechnician() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          booking: booking._id,
+          booking: booking.id,
           user: booking.user,
           technician: booking.technician,
           rating: { overall, punctuality, workQuality, communication, cleanliness },
@@ -76,7 +76,7 @@ export function ReviewTechnician() {
         <h1 className="text-3xl font-bold text-center mb-6">Rate & Review Technician</h1>
         <Card>
           <CardHeader>
-            <CardTitle>Booking #{booking._id}</CardTitle>
+            <CardTitle>Booking #{booking.id}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">

@@ -111,7 +111,7 @@ export function UserBookings() {
     if (booking.isBidding || booking.status === 'bidding') {
       setBidsLoading(true);
       try {
-        const response = await fetch(`${apiUrl}/bids/booking/${booking._id}`);
+        const response = await fetch(`${apiUrl}/bids/booking/${booking.id}`);
         const data = await response.json();
         
         if (response.ok) {
@@ -139,7 +139,7 @@ export function UserBookings() {
         setSelectedBooking({ ...selectedBooking, status: 'accepted' });
         // Refresh bookings to show updated status
         const updatedBookings = bookings.map(b => 
-          b._id === selectedBooking._id ? { ...b, status: 'accepted' } : b
+          b.id === selectedBooking.id ? { ...b, status: 'accepted' } : b
         );
         setBookings(updatedBookings);
         alert('Bid accepted successfully!');
@@ -161,7 +161,7 @@ export function UserBookings() {
     
     setActionLoading(true);
     try {
-      const response = await fetch(`${apiUrl}/bookings/${selectedBooking._id}/cancel`, {
+      const response = await fetch(`${apiUrl}/bookings/cancel/${selectedBooking.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cancellationReason: 'Cancelled by user' })
@@ -169,7 +169,7 @@ export function UserBookings() {
       
       if (response.ok) {
         const updatedBookings = bookings.map(b => 
-          b._id === selectedBooking._id ? { ...b, status: 'cancelled' } : b
+          b.id === selectedBooking.id ? { ...b, status: 'cancelled' } : b
         );
         setBookings(updatedBookings);
         alert('Booking cancelled successfully!');
@@ -255,7 +255,7 @@ export function UserBookings() {
               <p className="text-xl font-semibold mb-2">No bookings found</p>
               <p className="mb-6">Ready to book your first service?</p>
               <Button 
-                onClick={() => window.location.href = '/services'} 
+                onClick={() => window.location.href = '/service-booking'}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 Browse Services
@@ -266,7 +266,7 @@ export function UserBookings() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {bookings.map((booking) => (
               <Card 
-                key={booking._id} 
+                key={booking.id} 
                 className=" border border-gray-200 shadow-sm cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-blue-300 hover:-translate-y-1"
                 onClick={() => handleCardClick(booking)}
               >
@@ -424,7 +424,7 @@ export function UserBookings() {
                   ) : (
                     <div className="space-y-3 max-h-60 overflow-y-auto">
                       {bids.map((bid) => (
-                        <Card key={bid._id} className="border border-gray-200 shadow-sm">
+                        <Card key={bid.id} className="border border-gray-200 shadow-sm">
                           <CardContent className="p-4">
                             <div className="flex justify-between items-start mb-3">
                               <div>
@@ -445,7 +445,7 @@ export function UserBookings() {
                               </span>
                               <Button 
                                 size="sm" 
-                                onClick={() => handleAcceptBid(bid._id)}
+                                onClick={() => handleAcceptBid(bid.id)}
                                 disabled={actionLoading}
                                 className="bg-blue-600 hover:bg-blue-700"
                               >

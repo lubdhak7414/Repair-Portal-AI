@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import LandingPage from './LandingPage.jsx';
 import NotFoundPage from './NotFoundPage.jsx';
-import { TechnicianOnboarding } from '../pages/TechnicianOnboarding.jsx';
+import { TechnicianOnboarding } from './pages/TechnicianOnboarding.jsx';
 import { ServiceBooking } from './ServiceBooking.jsx';
 import { BookingStatus } from './BookingStatus.jsx';
 import { AuthProvider } from './context/AuthContext';
@@ -13,13 +13,13 @@ import {UserBookings} from './UserBookingsDetails.jsx';
 import { TechnicianBiddingPage } from './TechnicianBidding.jsx';
 import { TechnicianBidsPage } from './TechnicianBidsPage.jsx';
 import './index.css';
-import Layout from './Layout.jsx'; //
+import Layout from './Layout.jsx';
 import AdminDashboard from './AdminDashboard.jsx';
 import {RepairDiagnosis} from './RepairDiagnosis.jsx';
 import SearchTechnicians from './components/SearchTechnician.jsx';
 import PaymentGateway from './components/PaymentGateway.jsx';
 import TechnicianDashboard from './components/TechnicianDashboard.jsx';
-import { SocketProvider } from './context/socket.provider.jsx'; // Import SocketProvider
+import { SocketProvider } from './context/socket.provider.jsx';
 import ProfilePage from './ProfilePage.jsx';
 
 // Define your routes
@@ -34,10 +34,6 @@ const router = createBrowserRouter([
     element: <SearchTechnicians />
   },
   {
-    path:'/dashboard',
-    element: <TechnicianDashboard />
-  },
-    {
     path:'/payment',
     element: <PaymentGateway />
   },
@@ -46,14 +42,14 @@ const router = createBrowserRouter([
     element: <TechnicianOnboarding />,
   },
   {
-    element: <ProtectedRoutes allowedRoles={['user']} />, // Pass the allowed role
+    element: <ProtectedRoutes allowedRoles={['user']} />,
     children: [
       {
         path: '/service-booking',
         element: <ServiceBooking />,
       },
       {
-        path: '/booking-status/:id',  
+        path: '/booking-status/:id',
         element: <BookingStatus />,
       },
       {
@@ -68,17 +64,15 @@ const router = createBrowserRouter([
         path: "/repair-diagnosis",
         element: <RepairDiagnosis />,
       },
-
     ],
   },
   {
-  element: <ProtectedRoutes allowedRoles={['technician']} />,
+    element: <ProtectedRoutes allowedRoles={['technician']} />,
     children: [
       {
         path: '/technician-bidding',
         element: <TechnicianBiddingPage />,
       },
-
       {
         path: '/my-bids',
         element: <TechnicianBidsPage />,
@@ -86,11 +80,9 @@ const router = createBrowserRouter([
       {
         path: '/dashboard',
         element: <TechnicianDashboard />,
-
-      }
+      },
     ],
   },
-
   {
     element: <ProtectedRoutes allowedRoles={['admin']} />,
     children: [
@@ -98,9 +90,7 @@ const router = createBrowserRouter([
         path: '/admin-dashboard',
         element: <AdminDashboard />,
       },
-
-
-  ],
+    ],
   },
   {
     path: '/profile',

@@ -1,6 +1,7 @@
 import { createBooking as createBookingModel, getBookingById as getBookingByIdModel, getAllBookings as getAllBookingsModel, updateBooking as updateBookingModel, deleteBooking as deleteBookingModel, updateManyBookings, getBookingsForTechnician, getBookingsForTechnicianOrPendingServices } from "../models/booking.model.js";
 import { getUserById } from "../models/user.model.js";
 import { getTechnicianById, getTechnicianByUserId, technicianHasService } from "../models/technician.model.js";
+import eventEmitter from "../services/eventEmitter.js";
 import { getServiceById } from "../models/service.model.js";
 
 // Create a new booking
@@ -602,6 +603,16 @@ export const updateTechnicianBookingStatus = async (req, res) => {
         }
 
         const updatedBooking = updateBookingModel(bookingId, updateFields);
+
+        // Emit booking status change event for socket notifications (Phase 8)
+        if (booking.user) {
+            eventEmitter.emit('bookingStatusChanged', {
+                booking: updatedBooking,
+                userId: booking.user,
+                newStatus: updateFields.status || status,
+            });
+        }
+
         res.status(200).json(updatedBooking);
     } catch (error) {
         res.status(500).json({ message: error.message });

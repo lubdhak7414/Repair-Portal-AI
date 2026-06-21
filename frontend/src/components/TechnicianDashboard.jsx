@@ -101,7 +101,7 @@ const TechnicianDashboard = () => {
         }
       );
       setBookings(bookings.map(booking => 
-        booking._id === bookingId ? data : booking
+        booking.id === bookingId ? data : booking
       ));
       // Refresh counts after status change
       const counts = { ...bookingCounts };
@@ -127,7 +127,7 @@ const TechnicianDashboard = () => {
         { status: newStatus, userId: user.id }
       );
       setBookings(bookings.map(booking => 
-        booking._id === bookingId ? data : booking
+        booking.id === bookingId ? data : booking
       ));
     } catch (err) {
       console.error("Failed to update status:", err);
@@ -216,7 +216,7 @@ const TechnicianDashboard = () => {
                 <p>No conversations yet</p>
               ) : (
                 conversations.map(convo => {
-                  const otherUser = convo.lastMessage.sender._id === user.id  
+                  const otherUser = convo.lastMessage.sender.id === user.id  
                     ? convo.lastMessage.receiver 
                     : convo.lastMessage.sender;
                    const initials = otherUser.name.split(' ')
@@ -230,7 +230,7 @@ const TechnicianDashboard = () => {
                   
                   return (
                     <div 
-                      key={convo.lastMessage._id} 
+                      key={convo.lastMessage.id} 
                       className="conversation-item"
                       onClick={() => setCurrentChat({
                         user: otherUser,
@@ -328,7 +328,7 @@ const TechnicianDashboard = () => {
               </tr>
             ) : (
               bookings.map((booking) => (
-                <tr key={booking._id} style={{backgroundColor:'#dad7d7', borderBottom: '1px solid #b5b4b4'}}>
+                <tr key={booking.id} style={{backgroundColor:'#dad7d7', borderBottom: '1px solid #b5b4b4'}}>
 
                 <td style={{ padding: '12px',color:'#000'}}>{booking.user.name}</td>
                 <td style={{ padding: '12px',color:'#000',textAlign:'center'}}>{booking.address}</td>
@@ -349,7 +349,7 @@ const TechnicianDashboard = () => {
                   {booking.status === "pending" && (
                     <div className="actions">
                       <button
-                        onClick={() => handleStatusUpdate(booking._id, "accepted")}
+                        onClick={() => handleStatusUpdate(booking.id, "accepted")}
                         className="accept-btn"
                         style={{backgroundColor:'#57b53a',padding:'4px',color:'#f1f0f0',border:'1px solid #000',
                         marginRight:'10px',
@@ -359,7 +359,7 @@ const TechnicianDashboard = () => {
                         Accept
                       </button>
                       <button
-                        onClick={() => handleStatusUpdate(booking._id, "cancelled")}
+                        onClick={() => handleStatusUpdate(booking.id, "cancelled")}
                         className="reject-btn"
                         style={{backgroundColor:'#f63b3b',padding:'4px',color:'#f1f0f0',border:'1px solid #000',
                         fontSize:'1rem'
@@ -373,7 +373,7 @@ const TechnicianDashboard = () => {
 
                   {booking.status === "accepted" && (
                     <button
-                      onClick={() => handleStatusUpdate(booking._id, "in-progress")}
+                      onClick={() => handleStatusUpdate(booking.id, "in-progress")}
                       className="start-btn"
                       style={{backgroundColor:'#338da4',cursor:'pointer',color:'#fff',padding:'0.35rem',borderRadius:'0.3rem'}}
                     >
@@ -383,7 +383,7 @@ const TechnicianDashboard = () => {
 
                   {booking.status === "in-progress" && (
                     <button
-                      onClick={() => handleStatusUpdate(booking._id, "completed")}
+                      onClick={() => handleStatusUpdate(booking.id, "completed")}
                       className="complete-btn"
                       style={{backgroundColor:'#a3a433',cursor:'pointer',color:'#fff',padding:'0.35rem',borderRadius:'0.3rem'}}
                     >
@@ -410,7 +410,7 @@ const TechnicianDashboard = () => {
                           {booking.status === "pending" && (
                             <div className="actions">
                               <button
-                                onClick={() => handleStatusUpdate(booking._id, "accepted")}
+                                onClick={() => handleStatusUpdate(booking.id, "accepted")}
                                 className="accept-btn"
                                 style={{backgroundColor:'#57b53a',padding:'4px',color:'#f1f0f0',border:'1px solid #000',
                                 marginRight:'10px',
@@ -420,7 +420,7 @@ const TechnicianDashboard = () => {
                                 Accept
                               </button>
                               <button
-                                onClick={() => handleStatusUpdate(booking._id, "cancelled")}
+                                onClick={() => handleStatusUpdate(booking.id, "cancelled")}
                                 className="reject-btn"
                                 style={{backgroundColor:'#f63b3b',padding:'4px',color:'#f1f0f0',border:'1px solid #000',
                                 fontSize:'1rem'
@@ -433,7 +433,7 @@ const TechnicianDashboard = () => {
 
                           {booking.status === "accepted" && (
                             <button
-                              onClick={() => handleStatusUpdate(booking._id, "in-progress")}
+                              onClick={() => handleStatusUpdate(booking.id, "in-progress")}
                               className="start-btn"
                               style={{backgroundColor:'#338da4',cursor:'pointer',color:'#fff',padding:'0.35rem',borderRadius:'0.3rem'}}
                             >
@@ -443,7 +443,7 @@ const TechnicianDashboard = () => {
 
                           {booking.status === "in-progress" && (
                             <button
-                              onClick={() => handleStatusUpdate(booking._id, "completed")}
+                              onClick={() => handleStatusUpdate(booking.id, "completed")}
                               className="complete-btn"
                               style={{backgroundColor:'#a3a433',cursor:'pointer',color:'#fff',padding:'0.35rem',borderRadius:'0.3rem'}}
                             >

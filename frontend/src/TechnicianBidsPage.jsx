@@ -89,7 +89,7 @@ export function TechnicianBidsPage() {
           ) : (
             bids.map((bid) => (
               <Card
-                key={bid._id}
+                key={bid.id}
                 className="cursor-pointer hover:shadow-lg hover:scale-105 transition-all"
               >
                 <CardHeader>
