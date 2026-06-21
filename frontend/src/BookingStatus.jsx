@@ -41,7 +41,7 @@ export function BookingStatus() {
 
         <Card className="w-full max-w-lg mx-auto">
           <CardHeader>
-            <CardTitle>Booking #{booking._id}</CardTitle>
+            <CardTitle>Booking #{booking.id}</CardTitle>
           </CardHeader>
           <CardContent>
             <p><strong>Service:</strong> {booking.service?.name}</p>

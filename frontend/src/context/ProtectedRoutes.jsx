@@ -23,7 +23,7 @@ const ProtectedRoutes = ({ allowedRoles }) => {
     // If roles are specified and the user's role is not in the allowed roles,
     // redirect them to an unauthorized page or a dashboard.
     // You might want to customize this redirection based on your app's flow.
-    return <Navigate to="/unauthorized" replace />; // Or to "/dashboard", "/" etc.
+    return <Navigate to="/" replace />;
   }
 
   // 3. If authenticated (and authorized by role), render the child routes

@@ -27,15 +27,13 @@ function Testimonials() {
             <CarouselItem className="sm:basis-1/1 md:basis-1/2 lg:basis-1/2">
               <Card className="flex flex-col items-center text-center p-6 h-full">
                 <Avatar className="w-20 h-20 border-2">
-                  <AvatarImage alt="@johndoe" src="/placeholder-avatar.jpg" />
-                  <AvatarFallback>JD</AvatarFallback>
+                  <AvatarImage alt="@rahim" src="/placeholder-avatar.jpg" />
+                  <AvatarFallback>RM</AvatarFallback>
                 </Avatar>
-                <h3 className="mt-4 text-lg font-semibold text-primary">John Doe</h3>
+                <h3 className="mt-4 text-lg font-semibold text-primary">Rahim M.</h3>
                 <div className="flex flex-col h-full">
                   <p className="mt-4 text-gray-500">
-                    "As a patient, I always felt like my medical data was
-                    trapped in silos. Doctors couldn't easily access it, and
-                    I never knew the full picture of my health. Repair Portal changed everything. Now, I control my data, and I can share it securely with any healthcare provider I choose."
+                    {'"My AC broke down in the middle of summer. I posted the job on Repair Portal and had three quotes within an hour. The technician arrived the same day and fixed everything. Couldn\'t be happier!"'}
                   </p>
                 </div>
               </Card>
@@ -43,46 +41,38 @@ function Testimonials() {
             <CarouselItem className="sm:basis-1/1 md:basis-1/2 lg:basis-1/2">
               <Card className="flex flex-col items-center text-center p-6 h-full">
                 <Avatar className="w-20 h-20 border-2">
-                  <AvatarImage alt="@johndoe" src="/placeholder-avatar.jpg" />
-                  <AvatarFallback>KP</AvatarFallback>
+                  <AvatarImage alt="@fatima" src="/placeholder-avatar.jpg" />
+                  <AvatarFallback>FK</AvatarFallback>
                 </Avatar>
-                <h3 className="mt-4 text-lg font-semibold text-primary">Kelly Pooja</h3>
+                <h3 className="mt-4 text-lg font-semibold text-primary">Fatima K.</h3>
                 <div className="flex flex-col h-full">
                   <p className="mt-4 text-gray-500">
-                    "Repair Portal has been a game-changer for my research. The platform grants 
-                    me access to a diverse pool of anonymized healthcare data, enabling me to 
-                    tackle previously impossible research questions. The stringent privacy 
-                    measures ensure patient data is secure, while the intuitive interface 
-                    makes data analysis a breeze."
+                    {'"The AI diagnosis feature is incredible! I took a photo of my leaking pipe, and it identified the issue instantly. The technician who came was already prepared with the right parts. Saved me time and money."'}
                   </p>
                 </div>
               </Card>
             </CarouselItem>
-
             <CarouselItem className="sm:basis-1/1 md:basis-1/2 lg:basis-1/2">
               <Card className="flex flex-col items-center text-center p-6 h-full">
                 <Avatar className="w-20 h-20 border-2">
-                  <AvatarImage alt="@johndoe" src="/placeholder-avatar.jpg" />
-                  <AvatarFallback>JD</AvatarFallback>
+                  <AvatarImage alt="@karim" src="/placeholder-avatar.jpg" />
+                  <AvatarFallback>KA</AvatarFallback>
                 </Avatar>
-                <h3 className="mt-4 text-lg font-semibold text-primary">John Doe</h3>
+                <h3 className="mt-4 text-lg font-semibold text-primary">Karim A.</h3>
                 <div className="flex flex-col h-full">
                   <p className="mt-4 text-gray-500">
-                    "As a patient, I always felt like my medical data was
-                    trapped in silos. Doctors couldn't easily access it, and
-                    I never knew the full picture of my health. Repair Portal changed everything. Now, I control my data, and I can share it securely with any healthcare provider I choose."
+                    {'"As a technician, Repair Portal has transformed my business. I get matched with jobs that fit my skills, set my own prices through bidding, and get paid on time. The platform fee is more than fair for the volume of leads I receive."'}
                   </p>
                 </div>
               </Card>
-            </CarouselItem> 
-                
+            </CarouselItem>
           </CarouselContent>
           <CarouselPrevious />
           <CarouselNext />
         </Carousel>
       </div>
     </section>
-    );
+  );
 }
 
 export default Testimonials;

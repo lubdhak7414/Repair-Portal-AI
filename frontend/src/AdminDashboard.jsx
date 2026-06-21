@@ -275,7 +275,7 @@ function AdminDashboard() {
               <CardContent>
                 <div className="space-y-4">
                   {data.users?.slice(0, 5).map((user) => (
-                    <div key={user._id} className="flex items-center justify-between p-3 rounded-lg">
+                    <div key={user.id} className="flex items-center justify-between p-3 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center">
                           <span className="text-blue-300 font-semibold">{user.name.charAt(0)}</span>
@@ -322,7 +322,7 @@ function AdminDashboard() {
               <CardContent>
                 <div className="space-y-4">
                   {data.bookings?.slice(0, 5).map((booking) => (
-                    <div key={booking._id} className="flex items-center justify-between p-3 rounded-lg">
+                    <div key={booking.id} className="flex items-center justify-between p-3 rounded-lg">
                       <div>
                         <p className="font-medium">{booking.service?.name}</p>
                         <p className="text-sm text-gray-400">{booking.user?.name} • {booking.address}</p>
@@ -349,7 +349,7 @@ function AdminDashboard() {
           <TabsContent value="services" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {data.services?.services?.map((service) => (
-                <Card key={service._id} className="bg-zinc-900 border border-gray-700">
+                <Card key={service.id} className="bg-zinc-900 border border-gray-700">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       {service.name}

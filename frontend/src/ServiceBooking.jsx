@@ -56,7 +56,7 @@ export function ServiceBooking() {
     console.log('User:', user);
 
     // Check if the user is logged in and has an ID
-    if (!user || !user.id) {  // Changed from user._id to user.id
+    if (!user || !user.id) {  // Changed from user.id to user.id
       setError('You must be logged in to create a booking.');
       return;
     }
@@ -76,7 +76,7 @@ export function ServiceBooking() {
     setLoading(true);
     setError('');
 
-    const userID = user.id; // Use user.id instead of user._id
+    const userID = user.id; // Use user.id instead of user.id
     const technicianID = null; // No technician is assigned initially for bidding
 
     try {
@@ -104,7 +104,7 @@ export function ServiceBooking() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Booking failed. Please try again.');
 
-      navigate(`/booking-status/${data._id}`);
+      navigate(`/booking-status/${data.id}`);
 
     } catch (err) {
       setError(err.message);
@@ -148,7 +148,7 @@ export function ServiceBooking() {
                   >
                     <option value="" disabled>Select a Service</option>
                     {services.map((service) => (
-                      <option key={service._id} value={service._id}>
+                      <option key={service.id} value={service.id}>
                         {service.name}
                       </option>
                     ))}

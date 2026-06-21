@@ -1,21 +1,23 @@
 // src/Layout.jsx
 import React from 'react';
-import './styles.css'; 
-import Navbar from './sections/navbar';
-import Footer from './sections/Footer';
-import { BrowserRouter } from 'react-router-dom';
+import './styles.css';
+import { NotificationProvider } from './context/NotificationProvider';
+import { NotificationToast } from './components/NotificationToast';
 
 const Layout = ({ children }) => {
   return (
-    <div className="min-h-screen text-gray-100 font-sans antialiased flex flex-col justify-center p-4 relative overflow-hidden">
-      {/* Global Background */}
-      <div className="background" />
-      {/* Overlay */}
-      <div className="background-overlay" />
+    <NotificationProvider>
+      <div className="min-h-screen text-gray-100 font-sans antialiased flex flex-col justify-center p-4 relative overflow-hidden">
+        {/* Global Background */}
+        <div className="background" />
+        {/* Overlay */}
+        <div className="background-overlay" />
 
-      {children}
+        <NotificationToast />
+        {children}
 
-    </div>
+      </div>
+    </NotificationProvider>
   );
 };
 
